@@ -148,7 +148,7 @@ class TransfermarktBase:
                         print(f"   ⚠️ Idade inválida: '{age_part}'")  
                         return birth_date, None
             
-            # Se não tem parênteses, retorna como está
+           
             print(f"   ⚠️ Sem padrão reconhecido: '{text}'") 
             return text, None
             
@@ -162,7 +162,7 @@ class TransfermarktBase:
             flag_imgs = nat_cell.find_elements(By.CSS_SELECTOR, "img[title]")
             nationalities = []
             
-            # Lista expandida de países
+          
             country_keywords = [
                 'Brazil', 'Argentina', 'Uruguay', 'Paraguay', 'Colombia', 'Chile', 
                 'Peru', 'Ecuador', 'Venezuela', 'Bolivia', 'Spain', 'Italy', 
@@ -220,35 +220,31 @@ class TransfermarktScraper2025(TransfermarktBase):
             player_link = ""
             position = ""
             
-            # Estratégias específicas para 2025
+            
             try:
-                # Método 1: Link direto do jogador
                 name_link = name_cell.find_element(By.CSS_SELECTOR, "a[href*='/profil/spieler/']")
                 player_name = self.clean_text_data(name_link.text)
                 player_link = name_link.get_attribute('href')
             except:
                 try:
-                    # Método 2: Qualquer link
+                  
                     name_link = name_cell.find_element(By.TAG_NAME, "a")
                     player_name = self.clean_text_data(name_link.text)
                     player_link = name_link.get_attribute('href')
                 except:
-                    # Método 3: Texto direto
                     player_name = self.clean_text_data(name_cell.text)
             
-            # Extrair posição - métodos específicos para 2025
+         
             try:
-                # Método 1: Estrutura inline-table
                 inline_table = name_cell.find_element(By.CLASS_NAME, "inline-table")
                 position_cell = inline_table.find_element(By.XPATH, ".//tr[2]/td")
                 position = self.clean_text_data(position_cell.text)
             except:
                 try:
-                    # Método 2: Buscar por texto pequeno abaixo do nome
                     small_elements = name_cell.find_elements(By.TAG_NAME, "small")
                     for small in small_elements:
                         text = self.clean_text_data(small.text)
-                        if text and len(text) <= 20:  # Posições são textos curtos
+                        if text and len(text) <= 20: 
                             position = text
                             break
                 except:
@@ -270,7 +266,7 @@ class TransfermarktScraper2025(TransfermarktBase):
         try:
             cells = row.find_elements(By.TAG_NAME, "td")
             
-            if len(cells) < 10:  # 2025 tem pelo menos 10 colunas
+            if len(cells) < 10:  
                 return None
             
             player_data = {}
@@ -278,7 +274,7 @@ class TransfermarktScraper2025(TransfermarktBase):
             
             
             
-            # 1. Número da camisa (célula 0)
+     
             try:
                 number_div = cells[0].find_element(By.CSS_SELECTOR, ".rn_nummer")
                 numero = number_div.text.strip()
@@ -288,7 +284,7 @@ class TransfermarktScraper2025(TransfermarktBase):
             except:
                 return None
             
-            # 2. Nome e posição (célula 1)
+      
             player_name, player_link, position = self.extract_player_name_and_position(cells[1])
             
             if not player_name or len(player_name) < 2:
@@ -298,14 +294,12 @@ class TransfermarktScraper2025(TransfermarktBase):
             player_data['link_perfil'] = player_link
             player_data['posicao'] = position
             
-            # 3. Data de nascimento e idade - CORRIGIR ÍNDICE
+   
             try:
-                # Tentar diferentes células até encontrar a correta
                 birth_text = ""
                 for idx in [2, 3, 4, 5]:
                     try:
                         test_text = self.clean_text_data(cells[idx].text)
-                        # Verificar se parece com data de nascimento
                         if '(' in test_text and ')' in test_text and ('/' in test_text or '-' in test_text):
                             birth_text = test_text
     
@@ -327,9 +321,8 @@ class TransfermarktScraper2025(TransfermarktBase):
                 player_data['data_nascimento'] = ""
                 player_data['idade'] = None
             
-            # 4. Nacionalidade - CORRIGIR ÍNDICE
+   
             try:
-                # Tentar diferentes células até encontrar bandeiras
                 nacionalidade = ""
                 for idx in [3, 4, 5, 6]:
                     try:
@@ -347,9 +340,8 @@ class TransfermarktScraper2025(TransfermarktBase):
                 print(f"   ❌ Erro ao extrair nacionalidade: {e}")
                 player_data['nacionalidade'] = ""
             
-            # 5. Altura - CORRIGIR ÍNDICE
+    
             try:
-                # Procurar por padrão de altura (ex: "1,80 m", "180 cm")
                 altura = ""
                 for idx in range(4, 8):
                     try:
@@ -367,9 +359,7 @@ class TransfermarktScraper2025(TransfermarktBase):
                 print(f"   ❌ Erro ao extrair altura: {e}")
                 player_data['altura'] = ""
             
-            # 6. Pé preferido - CORRIGIR ÍNDICE
             try:
-                # Procurar por "left", "right", "both", "esquerdo", "direito"
                 pe_preferido = ""
                 for idx in range(5, 9):
                     try:
@@ -386,14 +376,11 @@ class TransfermarktScraper2025(TransfermarktBase):
                 print(f"   ❌ Erro ao extrair pé preferido: {e}")
                 player_data['pe_preferido'] = ""
             
-            # 7. Data de entrada - CORRIGIR ÍNDICE
             try:
-                # Procurar por padrão de data (sem parênteses)
                 data_entrada = ""
                 for idx in range(6, 10):
                     try:
                         test_text = self.clean_text_data(cells[idx].text)
-                        # Verificar se parece com data simples
                         if re.search(r'\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2}', test_text) and '(' not in test_text:
                             data_entrada = test_text
                             
@@ -407,38 +394,29 @@ class TransfermarktScraper2025(TransfermarktBase):
                 print(f"   ❌ Erro ao extrair data entrada: {e}")
                 player_data['data_entrada'] = ""
             
-            # 8. Clube de origem - CORREÇÃO ESPECÍFICA
             try:
-                # Procurar por links de clubes nas células corretas
                 clube_origem = ""
                 
-                # Para layout 2025, o clube de origem geralmente está na célula 10
-                # Vamos verificar células 10, 9, 8 em ordem
                 for idx in [10, 9, 8]:
                     try:
                         cell = cells[idx]
                         
-                        # Primeiro tentar encontrar link de clube
                         try:
                             club_link = cell.find_element(By.TAG_NAME, "a")
                             club_title = club_link.get_attribute("title")
                             
                             if club_title and club_title.strip():
-                                # Limpar informações extras do title
                                 if ":" in club_title:
                                     club_title = club_title.split(":")[0]
                                 
-                                # Verificar se não é altura, data ou outros dados
                                 if not re.search(r'\d+[,\.]\d+\s*m|\d+\s*cm|\d{2}/\d{2}/\d{4}|left|right', club_title.lower()):
                                     clube_origem = club_title.strip()
                                 
                                     break
                                     
                         except:
-                            # Se não tem link, tentar texto direto
                             text = cell.text.strip()
                             
-                            # Verificar se o texto parece com nome de clube
                             if (text and len(text) > 2 and 
                                 text not in ['-', 'N/A', '?', ''] and
                                 not re.search(r'\d+[,\.]\d+\s*m|\d+\s*cm|\d{2}/\d{2}/\d{4}|left|right|202\d', text.lower())):
@@ -459,9 +437,7 @@ class TransfermarktScraper2025(TransfermarktBase):
                 print(f"   ❌ Erro ao extrair clube origem: {e}")
                 player_data['clube_origem'] = ""
             
-            # 9. Contrato (específico do layout 2025) - MELHORADO
             try:
-                # Procurar por data de contrato (geralmente célula 11, às vezes 9)
                 contrato = ""
                 
                 for idx in [11, 9]:
@@ -482,10 +458,8 @@ class TransfermarktScraper2025(TransfermarktBase):
                 print(f"   ❌ Erro ao extrair contrato: {e}")
                 player_data['contrato_ate'] = ""
             
-            # 10. Clube atual (será preenchido depois)
             player_data['clube_atual'] = ""
             
-            # 11. Valor de mercado (última célula ou procurar por €)
             try:
                 valor_texto = ""
                 valor_numerico = 0
@@ -599,20 +573,16 @@ class TransfermarktScraperLegacy(TransfermarktBase):
     def extract_player_name_and_info(self, row):
         """Extrai nome, posição e link do jogador da estrutura inline-table"""
         try:
-            # Procurar pela tabela inline-table na segunda célula
             inline_table = row.find_element(By.CSS_SELECTOR, "td.posrela .inline-table")
             
             player_name = ""
             player_link = ""
             position = ""
             
-            # Nome e link estão na primeira linha da inline-table
             try:
                 name_link = inline_table.find_element(By.CSS_SELECTOR, "tr:first-child td.hauptlink a")
                 player_name = name_link.text.strip()
                 player_link = name_link.get_attribute('href')
-                
-                # Remover ícones de lesão ou capitão do nome
                 icon_spans = name_link.find_elements(By.CSS_SELECTOR, "span.verletzt-table, span.kapitaenicon-table, span.ausfall-1-table")
                 for span in icon_spans:
                     icon_text = span.text
@@ -623,16 +593,13 @@ class TransfermarktScraperLegacy(TransfermarktBase):
                 print(f"   ⚠️ Erro ao extrair nome: {e}")
                 return None, None, None
             
-            # Posição está na segunda linha da inline-table
             try:
                 position_cell = inline_table.find_element(By.CSS_SELECTOR, "tr:last-child td")
                 position = position_cell.text.strip()
             except:
                 position = ""
-            
-            # Limpar nome
+       
             if player_name:
-                # Remover caracteres especiais mas manter acentos
                 player_name = re.sub(r'[^\w\s\-áàâãéèêíìîóòôõúùûçÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ]', '', player_name)
                 player_name = player_name.strip()
             
@@ -647,18 +614,15 @@ class TransfermarktScraperLegacy(TransfermarktBase):
         try:
             cells = row.find_elements(By.TAG_NAME, "td")
             
-            if len(cells) < 10:  # Mínimo necessário
+            if len(cells) < 10:  
                 return None
             
             player_data = {}
-            
-            # 1. Número da camisa (célula 0)
+
             numero = self.extract_player_number(row)
             if not numero:
                 return None
             player_data['numero_camisa'] = numero
-            
-            # 2. Nome, posição e link (célula 1)
             nome, posicao, link = self.extract_player_name_and_info(row)
             if not nome:
                 return None
@@ -667,7 +631,6 @@ class TransfermarktScraperLegacy(TransfermarktBase):
             player_data['posicao'] = posicao or ""
             player_data['link_perfil'] = link or ""
             
-            # 3. Data nascimento/idade (célula 5) - CORRIGIDO
             try:
                 birth_text = self.clean_text_data(cells[5].text)
                 birth_date, age = self.parse_birth_date_and_age(birth_text)
@@ -677,20 +640,17 @@ class TransfermarktScraperLegacy(TransfermarktBase):
                 player_data['data_nascimento'] = ""
                 player_data['idade'] = None
             
-            # 4. Nacionalidade (célula 6) - PADRONIZADO
             try:
                 player_data['nacionalidade'] = self.extract_nationality(cells[6])
             except:
                 player_data['nacionalidade'] = ""
             
-            # 5. Clube atual (célula 7) - MANTIDO
             try:
                 club_cell = cells[7]
                 try:
                     club_link = club_cell.find_element(By.TAG_NAME, "a")
                     club_title = club_link.get_attribute("title")
                     if club_title and club_title.strip():
-                        # Remover data se existir
                         if "(" in club_title:
                             club_title = club_title.split("(")[0].strip()
                         player_data['clube_atual'] = club_title.strip()
@@ -707,35 +667,30 @@ class TransfermarktScraperLegacy(TransfermarktBase):
             except:
                 player_data['clube_atual'] = ""
             
-            # 6. Altura (célula 8)
             try:
                 height_cell = cells[8]
                 player_data['altura'] = height_cell.text.strip()
             except:
                 player_data['altura'] = ""
             
-            # 7. Pé preferido (célula 9)
             try:
                 foot_cell = cells[9]
                 player_data['pe_preferido'] = foot_cell.text.strip()
             except:
                 player_data['pe_preferido'] = ""
             
-            # 8. Data de entrada (célula 10)
             try:
                 joined_cell = cells[10]
                 player_data['data_entrada'] = joined_cell.text.strip()
             except:
                 player_data['data_entrada'] = ""
             
-            # 9. Clube de origem (célula 11)
             try:
                 from_cell = cells[11]
                 try:
                     club_link = from_cell.find_element(By.TAG_NAME, "a")
                     club_title = club_link.get_attribute("title")
                     if club_title and club_title.strip():
-                        # Remover informações de transferência (ex: ": Ablöse €500k")
                         if ":" in club_title:
                             club_title = club_title.split(":")[0]
                         player_data['clube_origem'] = club_title.strip()
@@ -749,11 +704,10 @@ class TransfermarktScraperLegacy(TransfermarktBase):
                         player_data['clube_origem'] = ""
             except:
                 player_data['clube_origem'] = ""
-            
-            # 10. Contrato até - NOVO (sempre vazio para layout legacy)
+
             player_data['contrato_ate'] = ""
             
-            # 11. Valor de mercado (célula 12)
+
             try:
                 value_cell = cells[12]
                 try:
@@ -787,7 +741,6 @@ class TransfermarktScraperLegacy(TransfermarktBase):
             self.handle_iframe_popup()
             time.sleep(5)
             
-            # Procurar tabela com classe "items"
             squad_table = self.find_squad_table()
             if not squad_table:
                 return []
@@ -807,7 +760,7 @@ class TransfermarktScraperLegacy(TransfermarktBase):
                     if player_data and player_data.get('nome'):
                         player_data['clube'] = team_name
                         player_data['temporada'] = season
-                        player_data['layout_type'] = "2025"  # NOVO: todos como 2025
+                        player_data['layout_type'] = "2025"  
                         player_data['data_coleta'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         players_data.append(player_data)
                         valid_players += 1
@@ -831,7 +784,6 @@ class TransfermarktJogadores:
     def __init__(self):
         self.default_save_path = r"C:\Users\migue\trabalho\análise de dados\selenium\talentos jovens\Data"
         
-        # Times por temporada com URLs do Transfermarkt
         self.times_por_temporada = {
             "2025": {
                 "Palmeiras": "https://www.transfermarkt.com/se-palmeiras-sao-paulo/kader/verein/1023/saison_id/2024/plus/1",
@@ -991,25 +943,25 @@ class TransfermarktJogadores:
         
         for player in season_data:
             try:
-                # Validações básicas
+             
                 if not player.get('nome') or len(player['nome']) < 2:
                     continue
                 
                 if not player.get('numero_camisa') or not str(player['numero_camisa']).isdigit():
                     continue
                 
-                # Limpar e padronizar campos - ESTRUTURA UNIFICADA
+             
                 cleaned_player = {}
                 
-                # Campos obrigatórios
+           
                 cleaned_player['numero_camisa'] = str(player.get('numero_camisa', ''))
                 cleaned_player['nome'] = str(player.get('nome', '')).strip()
                 cleaned_player['clube'] = str(player.get('clube', '')).strip()
                 cleaned_player['temporada'] = str(player.get('temporada', '')).strip()
-                cleaned_player['layout_type'] = "2025"  # TODOS COMO 2025
+                cleaned_player['layout_type'] = "2025" 
                 cleaned_player['data_coleta'] = str(player.get('data_coleta', ''))
                 
-                # Campos opcionais padronizados
+   
                 cleaned_player['posicao'] = str(player.get('posicao', '')).strip() or ""
                 cleaned_player['data_nascimento'] = str(player.get('data_nascimento', '')).strip() or ""
                 cleaned_player['nacionalidade'] = str(player.get('nacionalidade', '')).strip() or ""  # NOVO
@@ -1021,14 +973,14 @@ class TransfermarktJogadores:
                 cleaned_player['contrato_ate'] = str(player.get('contrato_ate', '')).strip() or ""  # PADRONIZADO
                 cleaned_player['link_perfil'] = str(player.get('link_perfil', '')).strip() or ""
                 
-                # Idade com validação
+   
                 idade = player.get('idade')
                 if idade and isinstance(idade, (int, float)) and 15 <= idade <= 45:
                     cleaned_player['idade'] = int(idade)
                 else:
                     cleaned_player['idade'] = None
                 
-                # Valor de mercado
+           
                 valor_texto = str(player.get('valor_mercado_texto', '')).strip()
                 valor_numerico = player.get('valor_mercado_numerico', 0)
                 
@@ -1059,11 +1011,11 @@ class TransfermarktJogadores:
         
         try:
             print(f"\n💾 SALVAMENTO AUTOMÁTICO - Temporada {season}...")
-            layout_type = "2025"  # TODOS COMO 2025
+            layout_type = "2025"  
             layout_desc = f"Layout Unificado 2025 (Temporada {season})"
             print(f"   🔧 Layout usado: {layout_desc}")
             
-            # Validação e limpeza dos dados
+           
             cleaned_data = self.validate_and_clean_data(season_data, layout_type)
             
             if not cleaned_data:
@@ -1072,7 +1024,6 @@ class TransfermarktJogadores:
             
             df = pd.DataFrame(cleaned_data)
             
-            # ESTRUTURA DE COLUNAS UNIFICADA
             column_order = [
                 'numero_camisa', 'nome', 'posicao', 'data_nascimento', 'idade', 
                 'nacionalidade', 'clube_atual', 'altura', 'pe_preferido', 
@@ -1081,47 +1032,35 @@ class TransfermarktJogadores:
                 'link_perfil', 'data_coleta'
             ]
             
-            # Garantir que todas as colunas existem
             for col in column_order:
                 if col not in df.columns:
                     df[col] = ""
             
             df = df[column_order]
             
-            # Tratamento de dados
             string_columns = [col for col in column_order if col not in ['idade', 'valor_mercado_numerico']]
             
             for col in string_columns:
                 df[col] = df[col].fillna('').astype(str)
                 df[col] = df[col].replace(['None', 'nan', 'NaN'], '')
             
-            # Tratar coluna idade
             df['idade'] = df['idade'].fillna('')
             df.loc[df['idade'] == '', 'idade'] = None
-            
-            # Tratar valor numérico
             df['valor_mercado_numerico'] = pd.to_numeric(df['valor_mercado_numerico'], errors='coerce').fillna(0).astype(int)
-            
-            # Ordenar dados
             df = df.sort_values(['clube', 'valor_mercado_numerico'], ascending=[True, False])
-            
-            # Criar diretório se não existir
+        
             if not os.path.exists(self.default_save_path):
                 os.makedirs(self.default_save_path)
                 print(f"📁 Diretório criado: {self.default_save_path}")
             
-            # Nome único do arquivo
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             filename = f"transfermarkt_brasileirao_{season}_unified_2025_{timestamp}.xlsx"
             full_path = os.path.join(self.default_save_path, filename)
             
-            # SALVAMENTO SEGURO COM MÚLTIPLAS ABAS
             with pd.ExcelWriter(full_path, engine='openpyxl') as writer:
-                # 1. Aba principal da temporada
                 df.to_excel(writer, sheet_name=f'Temporada_{season}', index=False)
                 print(f"   ✅ Aba principal criada: Temporada_{season}")
                 
-                # 2. Abas por time
                 teams_count = 0
                 for team in df['clube'].unique():
                     team_df = df[df['clube'] == team]
@@ -1131,24 +1070,14 @@ class TransfermarktJogadores:
                     teams_count += 1
                 
                 print(f"   ✅ {teams_count} abas de times criadas")
-                
-                # 3. Aba de estatísticas
                 try:
                     total_jogadores = len(df)
                     total_times = df['clube'].nunique()
-                    
-                    # Nacionalidades mais comuns
                     nacionalidades_count = df[df['nacionalidade'] != '']['nacionalidade'].value_counts().head(10)
-                    
-                    # Clubes atuais mais comuns (para legacy)
                     clubes_atuais_count = df[df['clube_atual'] != '']['clube_atual'].value_counts().head(10)
-                    
-                    # Valor total e médio
                     valores_validos = df[df['valor_mercado_numerico'] > 0]['valor_mercado_numerico']
                     valor_total = valores_validos.sum() if len(valores_validos) > 0 else 0
                     valor_medio = valores_validos.mean() if len(valores_validos) > 0 else 0
-                    
-                    # Idade média
                     idades_validas = df[df['idade'].notna() & (df['idade'] > 0)]['idade']
                     idade_media = idades_validas.mean() if len(idades_validas) > 0 else 0
                     
@@ -1192,9 +1121,8 @@ class TransfermarktJogadores:
                 except Exception as e:
                     print(f"   ⚠️ Erro ao criar estatísticas: {e}")
             
-            # Verificar se arquivo foi salvo com sucesso
             if os.path.exists(full_path):
-                file_size = os.path.getsize(full_path) / 1024  # KB
+                file_size = os.path.getsize(full_path) / 1024
                 print(f"\n🎉 SALVAMENTO CONCLUÍDO!")
                 print(f"✅ Arquivo: {filename}")
                 print(f"📊 {len(df)} jogadores, {df['clube'].nunique()} times")
@@ -1282,8 +1210,7 @@ class TransfermarktJogadores:
             if scraper.driver:
                 scraper.driver.quit()
                 print(f"🔒 Driver fechado")
-        
-        # Salvamento automático
+                
         print(f"\n💾 SALVAMENTO AUTOMÁTICO - 2025")
         excel_file = self.salvar_dados_por_temporada(season_players_data, season)
         
@@ -1336,7 +1263,6 @@ class TransfermarktJogadores:
                 scraper.driver.quit()
                 print(f"🔒 Driver fechado")
         
-        # Salvamento automático
         print(f"\n💾 SALVAMENTO AUTOMÁTICO - {season}")
         excel_file = self.salvar_dados_por_temporada(season_players_data, season)
         
@@ -1384,12 +1310,10 @@ class TransfermarktJogadores:
                     'success': False
                 })
             
-            # Pausa entre temporadas
             if season_idx < len(self.temporadas_legacy) - 1:
                 print(f"\n⏱️ Pausa de 10 segundos antes da próxima temporada...")
                 time.sleep(10)
         
-        # Relatório final
         successful_files = [f for f in all_files if f['success']]
         
         print(f"\n🎉 SCRAPING LEGACY FINALIZADO!")
@@ -1434,8 +1358,6 @@ class TransfermarktJogadores:
         if arquivos_existentes:
             print(f"\n📂 ARQUIVOS JÁ COLETADOS ({len(arquivos_existentes)}):")
             print("=" * 80)
-            
-            # Agrupar por layout
             legacy_files = [f for f in arquivos_existentes if f['layout_type'] == 'legacy']
             files_2025 = [f for f in arquivos_existentes if f['layout_type'] == '2025']
             unified_files = [f for f in arquivos_existentes if f['layout_type'] == 'unified']
@@ -1472,12 +1394,12 @@ class TransfermarktJogadores:
                     break
                 
                 elif escolha == "1":
-                    # Scraping 2025
+                   
                     self.scrape_temporada_2025()
                     input("\n⏸️ Pressione Enter para continuar...")
                 
                 elif escolha == "2":
-                    # Scraping temporada individual
+                    
                     while True:
                         self.mostrar_menu_temporadas_legacy()
                         
@@ -1499,12 +1421,10 @@ class TransfermarktJogadores:
                             print("❌ Digite um número válido!")
                 
                 elif escolha == "3":
-                    # Scraping todas as temporadas legacy
                     self.scrape_todas_temporadas_legacy()
                     input("\n⏸️ Pressione Enter para continuar...")
                 
                 elif escolha == "4":
-                    # Verificar arquivos existentes
                     self.verificar_arquivos_existentes()
                     input("\n⏸️ Pressione Enter para continuar...")
                 
